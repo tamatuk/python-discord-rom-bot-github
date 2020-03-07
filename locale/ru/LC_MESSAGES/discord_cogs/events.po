@@ -1,0 +1,63 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2020-02-25 01:53+0300\n"
+"PO-Revision-Date: 2020-02-25 01:55+0300\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 2.3\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+
+#: discord_cogs/events.py:87
+msgid "**__Added: {line}__**"
+msgstr "**__Добавлено: {line}__**"
+
+#: discord_cogs/events.py:89
+msgid "Deleted: ~~{line}~~"
+msgstr "Удалено: ~~{line}~~"
+
+#: discord_cogs/events.py:214
+msgid ""
+"@everyone Today's event list was updated:\n"
+"{diff}"
+msgstr ""
+"@everyone Список событий на сегодня был обновлён:\n"
+"{diff}"
+
+#: discord_cogs/events.py:220
+msgid ""
+"@everyone Reminder:\n"
+"{proximity}"
+msgstr ""
+"@everyone Напоминаю, что:\n"
+"{proximity}"
+
+#: discord_cogs/events.py:225
+msgid ""
+"@everyone Today's event list:\n"
+"{daily}"
+msgstr ""
+"@everyone Список событий на сегодня:\n"
+"{daily}"
+
+#: discord_cogs/events.py:228
+msgid "Returns list of events for today"
+msgstr "Возвращает список событий на сегодня"
+
+#: discord_cogs/events.py:230
+msgid ""
+"Today's event list:\n"
+"{events}"
+msgstr ""
+"Список событий на сегодня:\n"
+"{events}"

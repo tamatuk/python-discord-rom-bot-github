@@ -1,0 +1,53 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2020-02-25 01:53+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=cp1252\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: discord_cogs/events.py:87
+msgid "**__Added: {line}__**"
+msgstr ""
+
+#: discord_cogs/events.py:89
+msgid "Deleted: ~~{line}~~"
+msgstr ""
+
+#: discord_cogs/events.py:214
+msgid ""
+"@everyone Today's event list was updated:\n"
+"{diff}"
+msgstr ""
+
+#: discord_cogs/events.py:220
+msgid ""
+"@everyone Reminder:\n"
+"{proximity}"
+msgstr ""
+
+#: discord_cogs/events.py:225
+msgid ""
+"@everyone Today's event list:\n"
+"{daily}"
+msgstr ""
+
+#: discord_cogs/events.py:228
+msgid "Returns list of events for today"
+msgstr ""
+
+#: discord_cogs/events.py:230
+msgid ""
+"Today's event list:\n"
+"{events}"
+msgstr ""
+
