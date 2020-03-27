@@ -13,11 +13,12 @@ from db_utils.models import PricePoint
 from db_utils.models import PriceTrigger
 from db_utils.models import Item
 from db_utils.models import ItemDisplayName
+from db_utils.models import User
 from db_utils.utils import create_session
 from common import now
 
 from settings import LANGUAGE
-from settings import PRICES_DISCORD_CHANNEL_ID
+from settings import DISCORD_ADMINS
 from settings import PRICES_UPDATE_DELAY_SECONDS
 from settings import PRICES_UPDATE_METADATA_DELAY_SECONDS
 
@@ -62,6 +63,9 @@ def price_point_from_data(data):
 def item_from_data(data):
     item = Item()
     item.name = data['name']
+    item_display_name = ItemDisplayName()
+    item_display_name.display_name = data['name']
+    item.display_names.append(item_display_name)
     item.item_type = data['item_type']
     item.image_url = data['image_url']
     item_display_name = ItemDisplayName()
@@ -108,29 +112,43 @@ def create_price_trigger_types():
     return price_trigger_types
 
 
+def author_mention(ctx):
+    return ctx.message.author.mention.replace("!", "")
+
+
 class PriceTriggerNotification:
     def __init__(self, price_trigger, price_point):
         self.price_trigger = price_trigger
         self.price_point = price_point
 
+    @property
     def message(self):
         from settings import TIME_ZONE
-        message = _('{mention} Trigger occurred for {item_name} {trigger_type} {value:,}.\n'
-                    'Current price: {price:,}, volume: {volume:,}.\n'
-                    'Last price: {last_price:,}, volume: {last_volume:,}.').format(
+        message = _('{mention} Trigger(ID:{trigger_id}) occurred for {item_name} {trigger_type} {value:,}.\n'
+                    'Current price: {price:,}, volume: {volume:,}.').format(
                     mention=self.price_trigger.user_mention,
+                    trigger_id=self.price_trigger.id,
                     item_name=self.price_trigger.item_name,
                     trigger_type=self.price_trigger.trigger_type,
                     value=self.price_trigger.value,
                     price=self.price_point.price,
-                    volume=self.price_point.volume,
-                    last_price=self.price_trigger.notified_price_point.price,
-                    last_volume=self.price_trigger.notified_price_point.volume
+                    volume=self.price_point.volume
         )
+        if self.price_trigger.notified_price_point:
+            message += _('\nLast price: {last_price:,}, volume: {last_volume:,}.').format(
+                last_price=self.price_trigger.notified_price_point.price,
+                last_volume=self.price_trigger.notified_price_point.volume
+            )
         if self.price_point.snapping_till:
-            message += _("Snapping till {snapping_datetime:%H:%M}").format(
-                snapping_datetime=self.price_point.snapping_till.astimezone(TIME_ZONE))
+            import pytz
+            snapping_till = self.price_point.snapping_till.replace(tzinfo=pytz.utc)
+            message += _("\nSnapping till {snapping_datetime:%H:%M}").format(
+                snapping_datetime=snapping_till.astimezone(TIME_ZONE))
         return message
+
+    @property
+    def channel_id(self):
+        return self.price_trigger.user.chat_id
 
 
 class PricesData:
@@ -186,6 +204,7 @@ class PricesData:
 
     def add_price_trigger(self, price_trigger):
         self.check_price_trigger(price_trigger)
+        self.check_user(price_trigger.user_mention)
         self.session.add(price_trigger)
         self.commit_changes()
 
@@ -209,13 +228,23 @@ class PricesData:
         price_triggers = map(str, price_triggers)
         return price_triggers
 
-    def delete_price_trigger(self, trigger_id, user_mention):
+    def get_price_trigger(self, trigger_id):
         price_trigger = self.session.query(PriceTrigger).filter(
-            and_(PriceTrigger.id == trigger_id, PriceTrigger.user_mention == user_mention)
+            and_(PriceTrigger.id == trigger_id)
         ).first()
+        return price_trigger
+
+    def delete_price_trigger(self, trigger_id):
+        price_trigger = self.get_price_trigger(trigger_id)
         if price_trigger is None:
             raise Exception('Price Trigger not found.')
         self.session.delete(price_trigger)
+
+    def get_price_trigger_author(self, trigger_id):
+        price_trigger = self.get_price_trigger(trigger_id)
+        if price_trigger is None:
+            raise Exception('Price Trigger not found.')
+        return price_trigger.user_mention
 
     def triggered_notifications(self):
         triggered_notifications = []
@@ -249,18 +278,36 @@ class PricesData:
         price_point = max(item.price_points)
         return price_point
 
+    def check_user(self, user_mention):
+        user = self.get_user(user_mention)
+        if not user:
+            user = User()
+            user.mention = user_mention
+            self.session.add(user)
+            self.commit_changes()
+
+    def get_user(self, user_mention):
+        user = self.session.query(User).filter(
+            User.mention == user_mention
+        ).first()
+        return user
+
+    def get_chat_id(self, user_mention):
+        user = self.get_user(user_mention)
+        return user.chat_id
+
+    def set_chat_id(self, user_mention, chat_id):
+        user = self.get_user(user_mention)
+        user.chat_id = chat_id
+        self.commit_changes()
+
 
 class Prices(Cog):
     def __init__(self, discord_bot):
         self.bot = discord_bot
         self.data = PricesData()
-        self.channel = None
         self.task_update_prices = self.bot.loop.create_task(self.routine_update_prices())
         self.task_update_metadata = self.bot.loop.create_task(self.routine_update_metadata())
-
-    @Cog.listener()
-    async def on_ready(self):
-        self.channel = self.bot.get_channel(PRICES_DISCORD_CHANNEL_ID)
 
     async def routine_update_prices(self):
         await self.bot.wait_until_ready()
@@ -284,10 +331,10 @@ class Prices(Cog):
             logging.exception(e)
 
     async def send_triggers(self):
-        if not self.channel:
+        if not self.bot.is_ready:
             return
         for notification in self.data.triggered_notifications():
-            await self.channel.send(notification.message())
+            await self.bot.get_channel(notification.channel_id).send(notification.message)
             notification.price_trigger.notified_datetime = notification.price_point.relevance
             self.data.commit_changes()
 
@@ -309,7 +356,7 @@ class Prices(Cog):
              usage=_('"Hydra Card" p< 10000 - will trigger if price for Hydra Card lower than 10.000'))
     async def pt_add(self, ctx, item_name: str, trigger_type: str, value: int):
         resolved_item_name = self.resolve_item_name(item_name)
-        price_trigger = PriceTrigger(user_mention=ctx.message.author.mention,
+        price_trigger = PriceTrigger(user_mention=author_mention(ctx),
                                      item_name=resolved_item_name,
                                      trigger_type=trigger_type,
                                      value=value,
@@ -318,7 +365,7 @@ class Prices(Cog):
         price_point = self.data.get_item_last_price_point(resolved_item_name)
         await ctx.send(_('{mention} You will be notified when {trigger_description} {value:,} for {item_name}. '
                        'Current price: {price:,}, volume: {volume:,}.').format(
-                        mention=ctx.message.author.mention,
+                        mention=author_mention(ctx),
                         trigger_description=self.data.price_trigger_types[trigger_type].description,
                         value=value,
                         item_name=resolved_item_name,
@@ -326,26 +373,27 @@ class Prices(Cog):
                         volume=price_point.volume))
         logging.info('discord_server.Prices.price_trigger_add Price trigger {item_name} '
                      'was added for {mention}.'.format(item_name=resolved_item_name,
-                                                       mention=ctx.message.author.mention))
+                                                       mention=author_mention(ctx)))
 
     @pt_add.error
     async def price_trigger_add_error(self, ctx, error):
-        await ctx.send('{mention} {error}'.format(mention=ctx.message.author.mention, error=error))
+        await ctx.send('{mention} {error}'.format(mention=author_mention(ctx), error=error))
 
     @command(pass_context=True, brief=_('Lists triggers for self.'))
     async def pt_list(self, ctx):
-        triggers = self.data.price_triggers(ctx.message.author.mention)
+        triggers = self.data.price_triggers(author_mention(ctx))
+        triggers = '\n'.join(triggers)
         if triggers:
             await ctx.send(_('{mention} Your triggers are:\n{triggers}').format(
-                mention=ctx.message.author.mention,
-                triggers='\n'.join(triggers)))
+                mention=author_mention(ctx),
+                triggers=triggers))
         else:
-            await ctx.send(_('{mention} You don\'t have any triggers.').format(mention=ctx.message.author.mention))
+            await ctx.send(_('{mention} You don\'t have any triggers.').format(mention=author_mention(ctx)))
 
     @command(pass_context=True, brief=_('Lists all trigger types.'))
     async def pt_types(self, ctx):
         await ctx.send('{mention} {description}'.format(
-            mention=ctx.message.author.mention,
+            mention=author_mention(ctx),
             description=self.price_trigger_description()))
 
     def resolve_item_name(self, item_name):
@@ -362,14 +410,22 @@ class Prices(Cog):
 
     @command(pass_context=True, brief=_('Deletes price trigger by ID.'))
     async def pt_delete(self, ctx, trigger_id: int):
-        self.data.delete_price_trigger(trigger_id, ctx.message.author.mention)
+        if self.data.get_price_trigger_author(trigger_id) != author_mention(ctx) and \
+                not (ctx.message.author.id in DISCORD_ADMINS):
+            await ctx.send(_('{mention} price trigger (ID:{trigger_id}) is not yours.').format(
+                mention=author_mention(ctx),
+                trigger_id=trigger_id)
+            )
+            return
+
+        self.data.delete_price_trigger(trigger_id)
         await ctx.send(_('{mention} price trigger {trigger_id} was deleted.').format(
-            mention=ctx.message.author.mention,
+            mention=author_mention(ctx),
             trigger_id=trigger_id))
 
     @pt_delete.error
     async def pt_delete_error(self, ctx, error):
-        await ctx.send('{mention} {error}'.format(mention=ctx.message.author.mention, error=error))
+        await ctx.send('{mention} {error}'.format(mention=author_mention(ctx), error=error))
 
     @command(pass_context=True, brief=_('Returns current price.'))
     async def price(self, ctx, *args):
@@ -380,7 +436,7 @@ class Prices(Cog):
             if price_point:
                 await ctx.send(_('{mention} Price: {price:,}, volume: {volume:,}, '
                                  'date: {relevance:%d %b %Y %H:%M}').format(
-                    mention=ctx.message.author.mention,
+                    mention=author_mention(ctx),
                     price=price_point.price,
                     volume=price_point.volume,
                     relevance=price_point.relevance
@@ -389,6 +445,23 @@ class Prices(Cog):
                 await ctx.send(_('Price point for {item_name} was not found in DB').format(item_name=item_name))
         else:
             await ctx.send(_('Item {item_name} was not found in DB').format(item_name=item_name))
+
+    @command(pass_context=True, brief=_('Saves your chosen channel and send triggers there.'))
+    async def pt_here(self, ctx):
+        self.data.set_chat_id(author_mention(ctx), ctx.message.channel.id)
+
+    @command(pass_context=True, brief=_('Shows changelog.'))
+    async def pt_changelog(self, ctx):
+        message = "```Список изменений:\n" \
+                  " 1.0.1 - 16.03.2020:\n" \
+                  "  ● Добавлена команда /pt_here, позволяющая выбрать чат для срабатывания триггеров\n" \
+                  "  ● Добавлена возможность обращаться к предметам по ID (andre_card, boys_cap_1s_blueprint и пр.)\n" \
+                  "  ● Добавлен ID в триггер сообщение, что б можно было его удалять без вызова /pt_list\n" \
+                  "  ● Добавлено сообщение при отсутствии триггеров при использовании команды /pt_list\n" \
+                  "  ● Исправлен текст помощи команды /pt_list\n" \
+                  "  ● Исправлен баг, из-за которого могли сброситься триггеры при смене ника на сервере" \
+                  "```"
+        await ctx.send(message)
 
 
 if __name__ == "__main__":
