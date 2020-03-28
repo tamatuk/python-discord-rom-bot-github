@@ -7,6 +7,7 @@ from discord.ext.commands import Cog
 
 from common import now
 from common import df_from_gsheets_worksheet
+from common import get_worksheet
 
 from settings import TIME_ZONE
 from settings import LANGUAGE
@@ -24,9 +25,11 @@ _ = lang.gettext
 
 
 def all_events_df():
-    df = df_from_gsheets_worksheet(GSHEET_API_CREDENTIALS_PATH,
-                                   EVENTS_GSHEET_WORKBOOK_ID,
-                                   EVENTS_GSHEET_TABLE_NAME)
+
+    worksheet = get_worksheet(credentials_file_path=GSHEET_API_CREDENTIALS_PATH
+                              , workbook_id=EVENTS_GSHEET_WORKBOOK_ID
+                              , worksheet_name=EVENTS_GSHEET_TABLE_NAME)
+    df = df_from_gsheets_worksheet(worksheet=worksheet)
     from pandas import to_datetime
     df['date_start'] = to_datetime(df['date_start'], format="%d/%m/%Y").dt.date
     df['date_end'] = to_datetime(df['date_end'], format="%d/%m/%Y").dt.date
@@ -188,6 +191,8 @@ class Events(Cog):
         self.bot = discord_bot
         self.data = EventsData()
         self.channel = None
+        self.last_notification_message = None
+        self.last_proximity_message = None
         self.background_task = self.bot.loop.create_task(self.background_routine())
 
     @Cog.listener()
@@ -212,19 +217,37 @@ class Events(Cog):
 
     async def send_message_diff(self):
         if self.channel and self.data.diff:
-            await self.channel.send(_('@everyone Today\'s event list was updated:\n{diff}').format(
-                diff=self.data.diff))
+            await self.delete_last_notification()
+            self.last_notification_message = await self.channel.send(
+                _('@everyone Today\'s event list was updated:\n{diff}').format(diff=self.data.diff)
+            )
             logging.info('discord_server.Events: Events update stored_message was sent.')
 
     async def send_proximity_reminders(self):
         if self.channel and self.data.proximity:
-            await self.channel.send(_('@everyone Reminder:\n{proximity}').format(proximity=self.data.proximity))
+            await self.delete_last_proximity()
+            self.last_proximity_message = await self.channel.send(
+                _('@everyone Reminder:\n{proximity}').format(proximity=self.data.proximity)
+            )
             logging.info('discord_server.Events: Events proximity stored_message was sent.')
 
     async def send_daily_notification(self):
         if self.channel and self.data.daily:
-            await self.channel.send(_('@everyone Today\'s event list:\n{daily}').format(daily=self.data.daily))
+            await self.delete_last_notification()
+            self.last_notification_message = await self.channel.send(
+                _('@everyone Today\'s event list:\n{daily}').format(daily=self.data.daily)
+            )
             logging.info('discord_server.Events: Events daily stored_message was sent.')
+
+    async def delete_last_notification(self):
+        if self.last_notification_message is not None:
+            await self.last_notification_message.delete()
+            self.last_notification_message = None
+
+    async def delete_last_proximity(self):
+        if self.last_proximity_message is not None:
+            await self.last_proximity_message.delete()
+            self.last_proximity_message = None
 
     @command(pass_context=True, brief=_('Returns list of events for today'))
     async def events(self, ctx):

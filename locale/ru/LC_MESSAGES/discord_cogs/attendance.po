@@ -1,0 +1,35 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2020-03-28 01:00+0300\n"
+"PO-Revision-Date: 2020-03-28 01:00+0300\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 2.3\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+
+#: discord_cogs/attendance.py:81
+msgid "Checks attendance in your voice channel."
+msgstr "Проверяет явку в вашем голосовом канале."
+
+#: discord_cogs/attendance.py:84
+msgid "You're not allowed to use this command."
+msgstr "Вы не можете использовать данную команду."
+
+#: discord_cogs/attendance.py:87
+msgid "You're not in a voice channel."
+msgstr "Вы не находитесь в голосовом канале."
+
+#: discord_cogs/attendance.py:100
+msgid "{mention} Attendance stored in column '{column_name}'"
+msgstr "{mention} Явка сохранена в столбце '{column_name}'."

@@ -30,6 +30,7 @@ Simple easy-peasy bot for Ragnarok Mobile Discord server.
     ````
    py -3.5 C:\Users\tamat\AppData\Local\Programs\Python\Python35\Tools\i18n\pygettext.py -d discord_cogs/prices discord_cogs/prices.py
    py -3.5 C:\Users\tamat\AppData\Local\Programs\Python\Python35\Tools\i18n\pygettext.py -d discord_cogs/events discord_cogs/events.py
+   py -3.5 C:\Users\tamat\AppData\Local\Programs\Python\Python35\Tools\i18n\pygettext.py -d discord_cogs/attendance discord_cogs/attendance.py
     ````
 
 2. Update .po files using Poedit

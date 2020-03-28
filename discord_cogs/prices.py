@@ -16,6 +16,7 @@ from db_utils.models import ItemDisplayName
 from db_utils.models import User
 from db_utils.utils import create_session
 from common import now
+from common import author_mention
 
 from settings import LANGUAGE
 from settings import DISCORD_ADMINS
@@ -110,10 +111,6 @@ def create_price_trigger_types():
                                                         t.notified_price_point.volume) > t.value),
                                                    _('volume change percentage is higher than'))
     return price_trigger_types
-
-
-def author_mention(ctx):
-    return ctx.message.author.mention.replace("!", "")
 
 
 class PriceTriggerNotification:
@@ -275,8 +272,11 @@ class PricesData:
 
     def get_item_last_price_point(self, item_name):
         item = self.session.query(Item).filter(Item.name == item_name).first()
-        price_point = max(item.price_points)
-        return price_point
+        price_points = list(item.price_points)
+        if len(price_points):
+            return max(price_points)
+        else:
+            return None
 
     def check_user(self, user_mention):
         user = self.get_user(user_mention)
@@ -300,6 +300,10 @@ class PricesData:
         user = self.get_user(user_mention)
         user.chat_id = chat_id
         self.commit_changes()
+
+    def get_last_update_datetime(self):
+        from sqlalchemy import func
+        return self.session.query(func.max(PricePoint.updated)).first()[0]
 
 
 class Prices(Cog):
@@ -380,7 +384,10 @@ class Prices(Cog):
         await ctx.send('{mention} {error}'.format(mention=author_mention(ctx), error=error))
 
     @command(pass_context=True, brief=_('Lists triggers for self.'))
-    async def pt_list(self, ctx):
+    async def pt_list(self, ctx, *args):
+        if args:
+            await self.pt_list_other(ctx, args[0])
+            return
         triggers = self.data.price_triggers(author_mention(ctx))
         triggers = '\n'.join(triggers)
         if triggers:
@@ -389,6 +396,31 @@ class Prices(Cog):
                 triggers=triggers))
         else:
             await ctx.send(_('{mention} You don\'t have any triggers.').format(mention=author_mention(ctx)))
+
+    async def pt_list_other(self, ctx, user_id):
+        if ctx.message.author.id not in DISCORD_ADMINS:
+            raise Exception(_('You don\'t have admin rights to use it for others.'))
+        else:
+            user_mention = "<@{user_id}>".format(user_id=user_id)
+        user = self.data.get_user(user_mention)
+        if not user:
+            raise Exception(_('User_id({user_id}) was not found in DB.').format(user_id=user_id))
+        triggers = self.data.price_triggers(user_mention)
+        triggers = '\n'.join(triggers)
+        if triggers:
+            await ctx.send(_('{mention} Triggers for user_id({user_id}) are:\n{triggers}').format(
+                mention=author_mention(ctx),
+                user_id=user_id,
+                triggers=triggers))
+        else:
+            await ctx.send(_('{mention} User_id({user_id}) don\'t have any triggers.').format(
+                mention=author_mention(ctx),
+                user_id=user_id
+            ))
+
+    @pt_list.error
+    async def pt_list_error(self, ctx, error):
+        await ctx.send('{mention} {error}'.format(mention=author_mention(ctx), error=error))
 
     @command(pass_context=True, brief=_('Lists all trigger types.'))
     async def pt_types(self, ctx):
@@ -442,17 +474,35 @@ class Prices(Cog):
                     relevance=price_point.relevance
                 ))
             else:
-                await ctx.send(_('Price point for {item_name} was not found in DB').format(item_name=item_name))
+                await ctx.send(_('{mention} Price point for {item_name} was not found in DB').format(
+                    item_name=item_name
+                ))
         else:
-            await ctx.send(_('Item {item_name} was not found in DB').format(item_name=item_name))
+            await ctx.send(_('{mention} Item {item_name} was not found in DB').format(item_name=item_name))
+
+    @price.error
+    async def price_error(self, ctx, error):
+        await ctx.send('{mention} {error}'.format(mention=author_mention(ctx), error=error))
 
     @command(pass_context=True, brief=_('Saves your chosen channel and send triggers there.'))
     async def pt_here(self, ctx):
         self.data.set_chat_id(author_mention(ctx), ctx.message.channel.id)
 
+    @command(pass_context=True, brief=_('Returns last update datetime.'))
+    async def pt_last_update(self, ctx):
+        update_datetime = self.data.get_last_update_datetime()
+        await ctx.send(_('{mention} Last update was at {update_datetime}.').format(
+            mention=author_mention(ctx)
+            , update_datetime=update_datetime
+        ))
+
     @command(pass_context=True, brief=_('Shows changelog.'))
     async def pt_changelog(self, ctx):
         message = "```Список изменений:\n" \
+                  " 1.0.2 - 28.03.2020:\n" \
+                  "  ● Добавлена команда /pt_last_update, показывающая дату последнего обновления\n" \
+                  "  ● Исправлена ошибка, из-за которой бот молчал на комманду /prices, если в базе нет " \
+                  "информации о ценах\n" \
                   " 1.0.1 - 16.03.2020:\n" \
                   "  ● Добавлена команда /pt_here, позволяющая выбрать чат для срабатывания триггеров\n" \
                   "  ● Добавлена возможность обращаться к предметам по ID (andre_card, boys_cap_1s_blueprint и пр.)\n" \

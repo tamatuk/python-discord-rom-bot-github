@@ -4,6 +4,7 @@ from discord.ext.commands import Bot
 from discord_cogs.administration import Administration
 from discord_cogs.events import Events
 from discord_cogs.prices import Prices
+from discord_cogs.attendance import Attendance
 
 from settings import DISCORD_SERVER_TOKEN
 from settings import LOGGING_FORMAT
@@ -32,6 +33,8 @@ def create_server():
         bot.add_cog(Events(bot))
     if 'Prices' in DISCORD_COGS:
         bot.add_cog(Prices(bot))
+    if 'Attendance' in DISCORD_COGS:
+        bot.add_cog(Attendance(bot))
     bot.run(DISCORD_SERVER_TOKEN)
 
 

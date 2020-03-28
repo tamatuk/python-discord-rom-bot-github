@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2020-03-16 03:59+0300\n"
-"PO-Revision-Date: 2020-03-16 11:14+0300\n"
+"POT-Creation-Date: 2020-03-28 04:02+0300\n"
+"PO-Revision-Date: 2020-03-28 04:05+0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: ru\n"
@@ -18,39 +18,39 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 
-#: discord_cogs/prices.py:91
+#: discord_cogs/prices.py:93
 msgid "price is lower than"
 msgstr "цена ниже чем"
 
-#: discord_cogs/prices.py:93
+#: discord_cogs/prices.py:95
 msgid "price is higher than"
 msgstr "цена выше чем"
 
-#: discord_cogs/prices.py:95
+#: discord_cogs/prices.py:97
 msgid "volume is lower than"
 msgstr "объём ниже чем"
 
-#: discord_cogs/prices.py:97
+#: discord_cogs/prices.py:99
 msgid "volume is higher than"
 msgstr "объём выше чем"
 
-#: discord_cogs/prices.py:100
+#: discord_cogs/prices.py:102
 msgid "price change is higher than"
 msgstr "изменение цены больше чем"
 
-#: discord_cogs/prices.py:103
+#: discord_cogs/prices.py:105
 msgid "volume change is higher than"
 msgstr "изменение объёма больше чем"
 
-#: discord_cogs/prices.py:107
+#: discord_cogs/prices.py:109
 msgid "price change percentage is higher than"
 msgstr "процентное изменение цены больше чем"
 
-#: discord_cogs/prices.py:111
+#: discord_cogs/prices.py:113
 msgid "volume change percentage is higher than"
 msgstr "процентное изменение объёма больше чем"
 
-#: discord_cogs/prices.py:127
+#: discord_cogs/prices.py:125
 msgid ""
 "{mention} Trigger(ID:{trigger_id}) occurred for {item_name} {trigger_type} "
 "{value:,}.\n"
@@ -60,7 +60,7 @@ msgstr ""
 "{value:,}.\n"
 "Текущая цена: {price:,}, объём: {volume:,}."
 
-#: discord_cogs/prices.py:138
+#: discord_cogs/prices.py:136
 msgid ""
 "\n"
 "Last price: {last_price:,}, volume: {last_volume:,}."
@@ -76,11 +76,11 @@ msgstr ""
 "\n"
 "В снэппе до {snapping_datetime:%H:%M}"
 
-#: discord_cogs/prices.py:212
+#: discord_cogs/prices.py:211
 msgid "Item name \"{item_name}\" was not found in DB."
 msgstr "Предмет \"{item_name}\" не был найден в БД."
 
-#: discord_cogs/prices.py:214
+#: discord_cogs/prices.py:213
 msgid "Trigger type \"{trigger_type}\" was not found."
 msgstr "Тип триггера \"{trigger_type}\" не был найден."
 
@@ -113,7 +113,7 @@ msgstr ""
 msgid "Lists triggers for self."
 msgstr "Выводит список триггеров настроенных для вас."
 
-#: discord_cogs/prices.py:392
+#: discord_cogs/prices.py:395
 msgid ""
 "{mention} Your triggers are:\n"
 "{triggers}"
@@ -121,19 +121,39 @@ msgstr ""
 "{mention} Ваши триггеры:\n"
 "{triggers}"
 
-#: discord_cogs/prices.py:396
+#: discord_cogs/prices.py:399
 msgid "{mention} You don't have any triggers."
 msgstr "{mention} У вас нет триггеров."
 
-#: discord_cogs/prices.py:398
+#: discord_cogs/prices.py:403
+msgid "You don't have admin rights to use it for others."
+msgstr "У вас нет прав использовать данную команду для других."
+
+#: discord_cogs/prices.py:408
+msgid "User_id({user_id}) was not found in DB."
+msgstr "User_id({user_id}) не был найден в БД."
+
+#: discord_cogs/prices.py:412
+msgid ""
+"{mention} Triggers for user_id({user_id}) are:\n"
+"{triggers}"
+msgstr ""
+"{mention} Триггеры для user_id({user_id}):\n"
+"{triggers}"
+
+#: discord_cogs/prices.py:417
+msgid "{mention} User_id({user_id}) don't have any triggers."
+msgstr "{mention} У User_id({user_id}) нет триггеров."
+
+#: discord_cogs/prices.py:426
 msgid "Lists all trigger types."
 msgstr "Выводит список всех типов триггеров."
 
-#: discord_cogs/prices.py:407
+#: discord_cogs/prices.py:435
 msgid "Item name \"{item_name}\" was not found."
 msgstr "Имя предмета \"{item_name}\" не было найдено."
 
-#: discord_cogs/prices.py:414
+#: discord_cogs/prices.py:442
 msgid ""
 "```List of possible price triggers:\n"
 "{triggers}```"
@@ -141,23 +161,23 @@ msgstr ""
 "```Список возможных типов триггеров:\n"
 "{triggers}```"
 
-#: discord_cogs/prices.py:416
+#: discord_cogs/prices.py:444
 msgid "Deletes price trigger by ID."
 msgstr "Удаляет ценовой триггер по ID."
 
-#: discord_cogs/prices.py:420
+#: discord_cogs/prices.py:448
 msgid "{mention} price trigger (ID:{trigger_id}) is not yours."
 msgstr "{mention} ценовой триггер {trigger_id} не принадлежит вам."
 
-#: discord_cogs/prices.py:427
+#: discord_cogs/prices.py:455
 msgid "{mention} price trigger {trigger_id} was deleted."
 msgstr "{mention} ценовой триггер {trigger_id} был удалён."
 
-#: discord_cogs/prices.py:435
+#: discord_cogs/prices.py:463
 msgid "Returns current price."
 msgstr "Возвращает текущую цену."
 
-#: discord_cogs/prices.py:442
+#: discord_cogs/prices.py:470
 msgid ""
 "{mention} Price: {price:,}, volume: {volume:,}, date: {relevance:%d %b %Y %H:"
 "%M}"
@@ -165,18 +185,26 @@ msgstr ""
 "{mention} Цена: {price:,}, объём: {volume:,}, дата: {relevance:%d %b %Y %H:"
 "%M}"
 
-#: discord_cogs/prices.py:450
-msgid "Price point for {item_name} was not found in DB"
-msgstr "Цена предмета \"{item_name}\" не была найдена в БД"
+#: discord_cogs/prices.py:478
+msgid "{mention} Price point for {item_name} was not found in DB"
+msgstr "{mention} Цена предмета \"{item_name}\" не была найдена в БД"
 
-#: discord_cogs/prices.py:452
-msgid "Item {item_name} was not found in DB"
-msgstr "Предмет \"{item_name}\" не был найден в БД"
+#: discord_cogs/prices.py:482
+msgid "{mention} Item {item_name} was not found in DB"
+msgstr "{mention} Предмет \"{item_name}\" не был найден в БД"
 
-#: discord_cogs/prices.py:454
+#: discord_cogs/prices.py:488
 msgid "Saves your chosen channel and send triggers there."
 msgstr "Сохраняет выбранный канал и отправляет триггеры туда."
 
-#: discord_cogs/prices.py:458
+#: discord_cogs/prices.py:492
+msgid "Returns last update datetime."
+msgstr "Возвращает последнюю дату обновления."
+
+#: discord_cogs/prices.py:495
+msgid "{mention} Last update was at {update_datetime}."
+msgstr "{mention} Последнее обновление было {update_datetime}."
+
+#: discord_cogs/prices.py:500
 msgid "Shows changelog."
 msgstr "Выводит список изменений."

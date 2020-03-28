@@ -1,0 +1,33 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2020-03-28 01:00+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=cp1252\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: discord_cogs/attendance.py:81
+msgid "Checks attendance in your voice channel."
+msgstr ""
+
+#: discord_cogs/attendance.py:84
+msgid "You're not allowed to use this command."
+msgstr ""
+
+#: discord_cogs/attendance.py:87
+msgid "You're not in a voice channel."
+msgstr ""
+
+#: discord_cogs/attendance.py:100
+msgid "{mention} Attendance stored in column '{column_name}'"
+msgstr ""
+
